@@ -2,6 +2,8 @@ package marioKart;
 
 import com.kirbymimi.mmb.ut.ktml.KTML2Obj;
 import com.kirbymimi.mmb.ut.ktml.KTMLDecoder;
+
+import java.io.File;
 import java.util.Iterator;
 import java.util.Vector;
 import root.Packet;
@@ -26,13 +28,18 @@ public class ItemRain extends Thread {
    }
 
    public void reload() {
-      try {
-         KTML2Obj.loadS(this, KTMLDecoder.decode(this.server.fixFile("itemrain.cfg")));
-      } catch (Exception var2) {
-         System.out.println("can't load the item rain file");
-      }
-
-   }
+    try {
+        File itemRainFile = this.server.fixFile("itemrain.cfg");
+        if (!itemRainFile.exists()) {
+            System.err.println("itemrain.cfg does not exist.");
+            return; // Exit if the file does not exist
+        }
+        // Load the configuration
+        KTML2Obj.loadS(this, KTMLDecoder.decode(itemRainFile));
+    } catch (Exception e) {
+        System.out.println("Can't load the item rain file: " + e.getMessage());
+    }
+}
 
    public void run() {
       double clock = 0.0D;
