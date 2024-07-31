@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'com.github.johnrengelman.shadow' version '7.1.0' // Add this line
 }
 
 group = 'marioKart'
@@ -10,7 +11,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.json:json:20240303'
+    implementation 'org.json:json:20210307'
 
 }
 
@@ -20,4 +21,9 @@ jar {
                 'Main-Class': 'marioKart.MKServer'
         )
     }
+}
+
+shadowJar {
+    archiveBaseName.set(project.name)
+    archiveVersion.set(version)
 }
