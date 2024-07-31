@@ -15,13 +15,8 @@ import com.kirbymimi.mmb.ut.ktml.KTMLDecoder;
 import com.kirbymimi.mmb.ut.ktml.KTMLEntry;
 import com.kirbymimi.mmb.ut.list.FastList;
 import com.kirbymimi.mmb.ut.list.SafeList;
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.Console;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+
+import java.io.*;
 import java.net.BindException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -73,12 +68,16 @@ public abstract class Server extends KThread {
    Voice streamVoice = new Voice(this);
    static int AUDIOSTREAMSIZE = 61;
 
+
    public Server() {
       Mixer.init();
       (new KThread(() -> {
          consoleThreadUpdate();
       })).start();
       this.bans.loadFile();
+      this.createConfigFile();
+      this.createAutoConfigFile();
+      this.createItemRainConfigFile();
       this.loadConfig();
       this.reloadPatches();
       this.sleeper = new Sleeper(this.rate);
@@ -132,7 +131,7 @@ public abstract class Server extends KThread {
             this.userPrint("Unknown value in the mixer mode :" + str + ", possible values : \"on\", \"off\", \"compress\"");
          }
       } catch (Exception var4) {
-         this.userPrint("Can't load the serverconfig file");
+         this.userPrint("Can't load the server.cfg file");
       }
 
    }
@@ -154,6 +153,181 @@ public abstract class Server extends KThread {
 
    }
 
+   public void createItemRainConfigFile() {
+      File configFile = new File(fixPath("itemrain.cfg"));
+    if (!configFile.exists()) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(configFile))) {
+            writer.write("; ============================================\n");
+            writer.write("; Item Rain Configuration\n");
+            writer.write("; ============================================\n\n");
+            writer.write("; Number of items to spawn per second\n");
+            writer.write("itemPerSecond: 10.0\n\n");
+            writer.write("; Type of item spawn\n");
+            writer.write("spawnType: 1\n\n");
+            writer.write("; Enable or disable item rain\n");
+            writer.write("enabled: false\n\n");
+            writer.write("; Minimum height for item spawn\n");
+            writer.write("spawnMinHeight: 5000.0\n\n");
+            writer.write("; Random height variation for item spawn\n");
+            writer.write("spawnRndHeight: 2500.0\n\n");
+            writer.write("; Radius within which items can spawn\n");
+            writer.write("spawnRadius: 20000.0\n\n");
+            writer.write("; Item spawn table (item IDs)\n");
+            writer.write("spawnTable: [0, 1, 2, 3, 4, 5, 6, 8, 10, 11, 13, 15]\n\n");
+            writer.write("; Corresponding weights for item spawn\n");
+            writer.write("spawnWeight: [100, 33, 100, 100, 33, 60, 20, 60, 10, 33, 20, 100]\n");
+        } catch (IOException e) {
+            System.out.println("Failed to create itemrain.cfg: " + e.getMessage());
+        }
+    }
+}
+
+   private void createConfigFile() {
+    File configFile = new File(fixPath("server.cfg"));
+    if (!configFile.exists()) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(configFile))) {
+            writer.write("; ============================================\n");
+            writer.write("; Mario Kart Double Dash ONLINE!!\n");
+            writer.write("; Authors: Kirbymimi, Sir LoLz, Nayla Hanegan\n");
+            writer.write("; License: CC BY-NC 4.0\n");
+            writer.write("; ============================================\n\n");
+            writer.write("; Version to send to the server. \n");
+            writer.write("; This probably does not have to be changed\n");
+            writer.write("\"version\": \"DoubleDashOnlineV0.0.5\"\n\n");
+            writer.write("; Port for the server to connect on\n");
+            writer.write("; Default = 10014\n");
+            writer.write("\"port\": 10014\n\n");
+            writer.write("; Time in seconds to kick someone for being AFK\n");
+            writer.write("; with no packets being sent.\n");
+            writer.write("; Args. int\n");
+            writer.write("; Default = 10\n");
+            writer.write("\"timeOut\": 10\n\n");
+            writer.write("; Max players for the server to accept.\n");
+            writer.write("; Args. int\n");
+            writer.write("; Default = 8\n");
+            writer.write("\"maxPlayer\": 8\n\n");
+            writer.write("; Protocol to download tracks under.\n");
+            writer.write("; Args. String\n");
+            writer.write("; TCP\n");
+            writer.write("; UDP (Exp.)\n");
+            writer.write("; Default = TCP\n");
+            writer.write("\"trackDownloadType\": \"TCP\"\n\n");
+            writer.write("; Enable the Microphone Support\n");
+            writer.write("; Args. \"on\", \"off\", or \"compress\"\n");
+            writer.write("; Default = on\n");
+            writer.write("\"mixerType\": \"on\"\n\n");
+            writer.write("; Speed to download tracks\n");
+            writer.write("; Args. int\n");
+            writer.write("; Default = 6\n");
+            writer.write("\"trackDownloadSpeed\": 6\n\n");
+            writer.write("; Speed to download music\n");
+            writer.write("; Args. int\n");
+            writer.write("; Default = 6\n");
+            writer.write("\"musicDownloadSpeed\": 6\n\n");
+            writer.write("; Allow custom music in Custom Tracks.\n");
+            writer.write("; Args. boolean\n");
+            writer.write("; Default = True\n");
+            writer.write("\"customMusic\": true\n\n");
+            writer.write("; Reject Non-Dolphin Clients.\n");
+            writer.write("; Args. boolean\n");
+            writer.write("; Default = False\n");
+            writer.write("\"dolphinOnly\": false\n\n");
+            writer.write("; Will AI's Appear on the Track\n");
+            writer.write("; Args. boolean\n");
+            writer.write("\"aiFill\": true\n\n");
+            writer.write("; Will Co-op mode be enabled\n");
+            writer.write("; Args. boolean\n");
+            writer.write("\"teamEnable\": false\n\n");
+            writer.write("; Race CC Class\n");
+            writer.write("; Args. int\n");
+            writer.write("; 0 = 50cc\n");
+            writer.write("; 1 = 100cc\n");
+            writer.write("; 2 = 150cc\n");
+            writer.write("\"raceCC\": 2\n\n");
+            writer.write("; Race Mirror Status\n");
+            writer.write("; Args. int\n");
+            writer.write("; 0 = Disabled\n");
+            writer.write("; 1 = Enabled\n");
+            writer.write("\"raceMirror\": 1\n");
+        } catch (IOException e) {
+            this.userPrint("Failed to create server.cfg: " + e.getMessage());
+        }
+    }}
+
+    private void createAutoConfigFile() {
+    File autoConfigFile = new File(fixPath("autoserver.cfg"));
+    if (!autoConfigFile.exists()) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(autoConfigFile))) {
+            writer.write("\"selectTimeOut\": 30\n");
+            writer.write("\"battleTimeOut\": 420\n");
+            writer.write("\"raceStartTimeOut\": 300\n");
+            writer.write("\"afkTimeOut\": 50\n");
+            writer.write("\"enabled\": false\n");
+            writer.write("\"versus\": {\n");
+            writer.write("\t\"weight\": 100\n");
+            writer.write("\t\"seed\": 75\n");
+            writer.write("\t\"courses\": {\n");
+            writer.write("\t\t36 ; luigi circuit\n");
+            writer.write("\t\t34 ; peach beach\n");
+            writer.write("\t\t33 ; baby park\n");
+            writer.write("\t\t50 ; dry dry desert\n");
+            writer.write("\t\t40 ; mushroom bridge\n");
+            writer.write("\t\t37 ; mario circuit\n");
+            writer.write("\t\t35 ; daisy cruiser\n");
+            writer.write("\t\t42 ; waluigi stadium\n");
+            writer.write("\t\t51 ; sherbet land\n");
+            writer.write("\t\t41 ; mushroom city\n");
+            writer.write("\t\t38 ; yoshi circuit\n");
+            writer.write("\t\t45 ; dk mountain\n");
+            writer.write("\t\t43 ; wario colosseum\n");
+            writer.write("\t\t44 ; dino dino jungle\n");
+            writer.write("\t\t47 ; bowser's castle\n");
+            writer.write("\t\t49 ; rainbow road\n");
+            writer.write("\t}\n");
+            writer.write("\t\"cc\": 2\n");
+            writer.write("\t\"laps\": 0 ; replace the 0 with a number to define a custom laps number\n");
+            writer.write("\t\"itemBox\": 0\n");
+            writer.write("}\n");
+            writer.write("\n");
+            writer.write("\"balloon\": {\n");
+            writer.write("\t\"weight\": 10\n");
+            writer.write("\t\"courses\": {\n");
+            writer.write("\t\t58 ; cookie land\n");
+            writer.write("\t\t53 ; nintendo gamecube\n");
+            writer.write("\t\t54 ; block city\n");
+            writer.write("\t\t59 ; pipe plaza\n");
+            writer.write("\t\t52 ; luigi's mansion\n");
+            writer.write("\t\t59 ; tilt-a-kart\n");
+            writer.write("\t}\n");
+            writer.write("}\n");
+            writer.write("\"shine\": {\n");
+            writer.write("\t\"weight\": 10\n");
+            writer.write("\t\"courses\": {\n");
+            writer.write("\t\t58 ; cookie land\n");
+            writer.write("\t\t53 ; nintendo gamecube\n");
+            writer.write("\t\t54 ; block city\n");
+            writer.write("\t\t59 ; pipe plaza\n");
+            writer.write("\t\t52 ; luigi's mansion\n");
+            writer.write("\t\t59 ; tilt-a-kart\n");
+            writer.write("\t}\n");
+            writer.write("}\n");
+            writer.write("\"bomb\": {\n");
+            writer.write("\t\"weight\": 10\n");
+            writer.write("\t\"courses\": {\n");
+            writer.write("\t\t58 ; cookie land\n");
+            writer.write("\t\t53 ; nintendo gamecube\n");
+            writer.write("\t\t54 ; block city\n");
+            writer.write("\t\t59 ; pipe plaza\n");
+            writer.write("\t\t52 ; luigi's mansion\n");
+            writer.write("\t\t59 ; tilt-a-kart\n");
+            writer.write("\t}\n");
+            writer.write("}\n");
+        } catch (IOException e) {
+            this.userPrint("Failed to create autoserver.cfg: " + e.getMessage());
+        }
+    }}
+    
+   
    public void sendPatches(ServerUser dst) {
       Iterator var3 = this.patches.iterator();
 
